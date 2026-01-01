@@ -1,9 +1,9 @@
 {
-  "name": "ps-autolayout",
+  "name": "photoshop-loom",
   "type": "module",
   "version": "1.0.0",
-  "description": "CSS Flexbox-inspired auto-layout for Adobe Photoshop via ExtendScript",
-  "main": "dist/autolayout.jsx",
+  "description": "Powerful layout and styling system for Adobe Photoshop via ExtendScript",
+  "main": "dist/loom.jsx",
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w"
