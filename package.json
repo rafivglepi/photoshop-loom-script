@@ -1,0 +1,26 @@
+{
+  "name": "ps-autolayout",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "CSS Flexbox-inspired auto-layout for Adobe Photoshop via ExtendScript",
+  "main": "dist/autolayout.jsx",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
+  },
+  "keywords": [
+    "photoshop",
+    "extendscript",
+    "auto-layout",
+    "flexbox"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.0",
+    "tslib": "^2.6.2",
+    "types-for-adobe": "^7.0.0",
+    "typescript": "^5.3.0"
+  }
+}
