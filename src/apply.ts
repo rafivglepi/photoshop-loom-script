@@ -1,7 +1,13 @@
-import { LayoutChild, Bounds, ComputedSize } from './types';
-import { getLayerBounds, getBoundsWidth, getBoundsHeight, getChildren, isLayerGroup } from './measure';
-import { applyMaxRoundness } from './rounded';
-import { parseLayoutName } from './parser';
+import {
+	getBoundsHeight,
+	getBoundsWidth,
+	getChildren,
+	getLayerBounds,
+	isLayerGroup,
+} from "./measure"
+import { parseLayoutName } from "./parser"
+import { applyMaxRoundness } from "./rounded"
+import { Bounds, ComputedSize, LayoutChild } from "./types"
 
 // Declare ExtendScript globals
 declare function charIDToTypeID(id: string): number;
