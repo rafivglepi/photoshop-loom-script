@@ -64,22 +64,31 @@ function processDocument(doc: any): void {
     return getDepth(b) - getDepth(a)
   })
 
-  // PHASE 1: Extract ALL fixed layers from ALL groups first
+  // PHASE 1: Extract ALL fixed/relative layers from ALL groups first
   var allFixedLayers: FixedLayerInfo[] = []
+  var allRelativeLayers: FixedLayerInfo[] = []
   for (var i = 0; i < layoutGroups.length; i++) {
     var fixedLayers = extractFixedLayers(layoutGroups[i], doc)
     for (var j = 0; j < fixedLayers.length; j++) {
-      allFixedLayers.push(fixedLayers[j])
+      if (fixedLayers[j].isRelative) {
+        allRelativeLayers.push(fixedLayers[j])
+      } else {
+        allFixedLayers.push(fixedLayers[j])
+      }
     }
   }
 
-  // PHASE 2: Process all layout groups (without fixed layers interfering)
+  // PHASE 2: Restore relative layers back to groups (before layout)
+  // They'll naturally move with the group when layout positions are applied
+  restoreLayersToGroup(allRelativeLayers)
+
+  // PHASE 3: Process all layout groups (without fixed/relative layers interfering)
   for (var k = 0; k < layoutGroups.length; k++) {
     processLayoutGroup(layoutGroups[k], doc)
   }
 
-  // PHASE 3: Restore ALL fixed layers at the very end
-  restoreFixedLayers(allFixedLayers)
+  // PHASE 4: Restore fixed layers at the very end (at original positions)
+  restoreLayersToGroup(allFixedLayers)
 }
 
 /**
@@ -96,7 +105,7 @@ function getDepth(layer: any): number {
 }
 
 /**
- * Store information about a fixed layer that was temporarily moved
+ * Store information about a fixed/relative layer that was temporarily moved
  */
 interface FixedLayerInfo {
   layer: any
@@ -104,30 +113,34 @@ interface FixedLayerInfo {
   siblingAfter: any | null // The layer that came right after this one (to restore position)
   absoluteX: number
   absoluteY: number
+  isRelative: boolean // If true, this layer moves with layout; if false, stays in original position
 }
 
 /**
- * Extract fixed layers from a group and move them to document root
+ * Extract fixed and relative layers from a group and move them to document root
  * Returns info needed to restore them later
  */
 function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
   var fixedLayers: FixedLayerInfo[] = []
   var children = getChildren(layerSet)
 
-  // Find fixed layers and their siblings for restoration
+  // Find fixed/relative layers and their siblings for restoration
   for (var i = 0; i < children.length; i++) {
     var child = children[i]
     var childConfig = parseLayoutName(child.name)
 
-    if (childConfig.isFixed && isLayerVisible(child)) {
+    if (
+      (childConfig.isFixed || childConfig.isRelative) &&
+      isLayerVisible(child)
+    ) {
       var bounds = getLayerBounds(child)
 
-      // Find the next non-fixed sibling (if any) to place before it later
+      // Find the next non-fixed/non-relative sibling (if any) to place before it later
       var siblingAfter = null
       for (var j = i + 1; j < children.length; j++) {
         var nextChild = children[j]
         var nextConfig = parseLayoutName(nextChild.name)
-        if (!nextConfig.isFixed) {
+        if (!nextConfig.isFixed && !nextConfig.isRelative) {
           siblingAfter = nextChild
           break
         }
@@ -140,6 +153,7 @@ function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
         siblingAfter: siblingAfter,
         absoluteX: bounds.left,
         absoluteY: bounds.top,
+        isRelative: childConfig.isRelative,
       })
     }
   }
@@ -153,11 +167,13 @@ function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
 }
 
 /**
- * Restore fixed layers back to their original parent groups
+ * Restore layers back to their original parent groups
+ * For relative layers, they naturally move with the group
+ * For fixed layers, restore to original absolute position
  */
-function restoreFixedLayers(fixedLayers: FixedLayerInfo[]): void {
-  for (var i = 0; i < fixedLayers.length; i++) {
-    var info = fixedLayers[i]
+function restoreLayersToGroup(layers: FixedLayerInfo[]): void {
+  for (var i = 0; i < layers.length; i++) {
+    var info = layers[i]
 
     // Move layer back to its original parent at its original position
     if (info.siblingAfter) {
@@ -178,20 +194,23 @@ function restoreFixedLayers(fixedLayers: FixedLayerInfo[]): void {
       }
     }
 
-    // Restore absolute position
-    var currentBounds = getLayerBounds(info.layer)
-    var deltaX = info.absoluteX - currentBounds.left
-    var deltaY = info.absoluteY - currentBounds.top
+    // For fixed layers, restore to original absolute position
+    // For relative layers, they'll move naturally with the group
+    if (!info.isRelative) {
+      var currentBounds = getLayerBounds(info.layer)
+      var deltaX = info.absoluteX - currentBounds.left
+      var deltaY = info.absoluteY - currentBounds.top
 
-    if (Math.abs(deltaX) > 0.001 || Math.abs(deltaY) > 0.001) {
-      info.layer.translate(deltaX, deltaY)
+      if (Math.abs(deltaX) > 0.001 || Math.abs(deltaY) > 0.001) {
+        info.layer.translate(deltaX, deltaY)
+      }
     }
   }
 }
 
 /**
  * Process a single layout group
- * Note: Fixed layers are extracted before this is called and restored after all layouts
+ * Note: Fixed and relative layers are extracted before this is called and restored after all layouts
  */
 function processLayoutGroup(layerSet: any, doc: any): void {
   var config = parseLayoutName(layerSet.name)

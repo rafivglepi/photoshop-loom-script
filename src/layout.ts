@@ -35,7 +35,7 @@ export function calculateLayout(
   var allChildren = getChildren(layerSet)
 
   // Separate content layers and normal layers
-  // Note: Fixed layers are handled at a higher level (moved out of group before layout)
+  // Note: Fixed and relative layers are handled at a higher level (moved out of group before layout)
   var contentLayers: any[] = []
   var normalLayers: any[] = []
 
@@ -43,8 +43,9 @@ export function calculateLayout(
     var child = allChildren[i]
     if (!isLayerVisible(child)) continue
 
-    // Skip fixed layers (they should already be moved out, but check just in case)
-    if (isFixedLayer(child.name)) {
+    // Skip fixed/relative layers (they should already be moved out, but check just in case)
+    var childConfig = parseLayoutName(child.name)
+    if (childConfig.isFixed || childConfig.isRelative) {
       continue
     }
 
@@ -184,7 +185,7 @@ export function calculateLayout(
     })
   }
 
-  // Note: Fixed layers are handled at a higher level (outside this function)
+  // Note: Fixed and relative layers are handled at a higher level (outside this function)
   // They are moved out before layout and restored after
 
   return {

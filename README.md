@@ -16,6 +16,7 @@ Stop manually nudging layers pixel by pixel. Loom weaves your layers together wi
 - **Content layers**: Background layers that define container bounds or auto-resize (`.content`, `.content.resize`)
 - **Rounded corners**: Auto-maximize corner radius for rounded rectangles (`.rounded`)
 - **Fixed layers**: Layers ignored by layout system, perfect for decorations and backgrounds (`.fixed`)
+- **Relative layers**: Layers that don't affect layout but move with it (`.relative`)
 
 ## Installation
 
@@ -167,25 +168,26 @@ If this `.hstack` is inside a parent layout that moves it around, the buttons wi
 
 ## Syntax Reference
 
-| Class               | Description                                   | Example                |
-| ------------------- | --------------------------------------------- | ---------------------- |
-| `.hstack`           | Horizontal layout (row)                       | `.hstack.gap(8)`       |
-| `.vstack`           | Vertical layout (column)                      | `.vstack.items-center` |
-| `.gap(n)`           | Space between children (px)                   | `.gap(16)`             |
-| `.padding(n)`       | Equal padding all sides                       | `.padding(8)`          |
-| `.padding(v,h)`     | Vertical, horizontal padding                  | `.padding(8,16)`       |
-| `.padding(t,r,b,l)` | Individual padding (top, right, bottom, left) | `.padding(8,16,8,16)`  |
-| `.items-start`      | Align children to cross-axis start            |                        |
-| `.items-center`     | Align children to cross-axis center           |                        |
-| `.items-end`        | Align children to cross-axis end              |                        |
-| `.justify-start`    | Align children to main-axis start (default)   |                        |
-| `.justify-center`   | Center children on main-axis                  | Requires `.content`    |
-| `.justify-end`      | Align children to main-axis end               | Requires `.content`    |
-| `.justify-between`  | Distribute children with equal spacing        |                        |
-| `.content`          | Layer defines container size                  | Background/container   |
-| `.resize`           | Make `.content` resize to fit children        | Use with `.content`    |
-| `.rounded`          | Maximize corner radius for rounded rectangles | Auto-updates on scale  |
-| `.fixed`            | Ignore layer in layout calculations           | Decorations/overlays   |
+| Class               | Description                                     | Example                |
+| ------------------- | ----------------------------------------------- | ---------------------- |
+| `.hstack`           | Horizontal layout (row)                         | `.hstack.gap(8)`       |
+| `.vstack`           | Vertical layout (column)                        | `.vstack.items-center` |
+| `.gap(n)`           | Space between children (px)                     | `.gap(16)`             |
+| `.padding(n)`       | Equal padding all sides                         | `.padding(8)`          |
+| `.padding(v,h)`     | Vertical, horizontal padding                    | `.padding(8,16)`       |
+| `.padding(t,r,b,l)` | Individual padding (top, right, bottom, left)   | `.padding(8,16,8,16)`  |
+| `.items-start`      | Align children to cross-axis start              |                        |
+| `.items-center`     | Align children to cross-axis center             |                        |
+| `.items-end`        | Align children to cross-axis end                |                        |
+| `.justify-start`    | Align children to main-axis start (default)     |                        |
+| `.justify-center`   | Center children on main-axis                    | Requires `.content`    |
+| `.justify-end`      | Align children to main-axis end                 | Requires `.content`    |
+| `.justify-between`  | Distribute children with equal spacing          |                        |
+| `.content`          | Layer defines container size                    | Background/container   |
+| `.resize`           | Make `.content` resize to fit children          | Use with `.content`    |
+| `.rounded`          | Maximize corner radius for rounded rectangles   | Auto-updates on scale  |
+| `.fixed`            | Ignore layer in layout, stay at canvas position | Absolute decorations   |
+| `.relative`         | Ignore layer in layout, but move with parent    | Overlays/badges        |
 
 \* Note: `justify-*` only work when there's a `.content` layer defining the container bounds.
 

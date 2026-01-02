@@ -47,6 +47,10 @@ export function parseLayoutName(name: string): LayoutConfig {
     else if (cls === "fixed") {
       config.isFixed = true
     }
+    // Relative (doesn't affect layout but moves with it)
+    else if (cls === "relative") {
+      config.isRelative = true
+    }
     // Items alignment (cross-axis)
     else if (cls === "items-start") {
       config.items = "start"
@@ -150,4 +154,11 @@ export function isContentLayer(name: string): boolean {
  */
 export function isFixedLayer(name: string): boolean {
   return !!name && name.indexOf(".fixed") !== -1
+}
+
+/**
+ * Check if a layer name indicates it's a relative layer
+ */
+export function isRelativeLayer(name: string): boolean {
+  return !!name && name.indexOf(".relative") !== -1
 }
