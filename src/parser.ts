@@ -51,6 +51,10 @@ export function parseLayoutName(name: string): LayoutConfig {
     else if (cls === "relative") {
       config.isRelative = true
     }
+    // Backdrop (merge previous layers into smart object)
+    else if (cls === "backdrop") {
+      config.isBackdrop = true
+    }
     // Items alignment (cross-axis)
     else if (cls === "items-start") {
       config.items = "start"
@@ -161,4 +165,11 @@ export function isFixedLayer(name: string): boolean {
  */
 export function isRelativeLayer(name: string): boolean {
   return !!name && name.indexOf(".relative") !== -1
+}
+
+/**
+ * Check if a layer name indicates it's a backdrop layer
+ */
+export function isBackdropLayer(name: string): boolean {
+  return !!name && name.indexOf(".backdrop") !== -1
 }

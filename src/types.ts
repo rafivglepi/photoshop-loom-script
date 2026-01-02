@@ -27,6 +27,7 @@ export interface LayoutConfig {
   isRounded: boolean // If true, maximize corner radius for rounded rectangles
   isFixed: boolean // If true, this layer is ignored by layout (decorations/backgrounds)
   isRelative: boolean // If true, this layer doesn't affect layout but moves with it
+  isBackdrop: boolean // If true, merge all previous layers into a smart object
 }
 
 // Rectangle bounds
@@ -71,5 +72,6 @@ export function createDefaultConfig(): LayoutConfig {
     isRounded: false,
     isFixed: false,
     isRelative: false,
+    isBackdrop: false,
   }
 }

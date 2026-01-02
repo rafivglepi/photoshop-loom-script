@@ -43,9 +43,9 @@ export function calculateLayout(
     var child = allChildren[i]
     if (!isLayerVisible(child)) continue
 
-    // Skip fixed/relative layers (they should already be moved out, but check just in case)
+    // Skip fixed/relative/backdrop layers (they should already be moved out, but check just in case)
     var childConfig = parseLayoutName(child.name)
-    if (childConfig.isFixed || childConfig.isRelative) {
+    if (childConfig.isFixed || childConfig.isRelative || childConfig.isBackdrop) {
       continue
     }
 

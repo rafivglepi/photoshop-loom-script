@@ -1,6 +1,12 @@
 /// <reference types="types-for-adobe/Photoshop/2015.5"/>
 
-import { applyContentSizes, applyPositions, applyRoundness } from "./apply"
+import {
+	applyContentSizes,
+	applyPositions,
+	applyRoundness,
+	processBackdropsInGroup,
+	resizeBackdropToSize,
+} from "./apply"
 import { calculateLayout } from "./layout"
 import {
 	getAllLayerSets,
@@ -64,14 +70,17 @@ function processDocument(doc: any): void {
     return getDepth(b) - getDepth(a)
   })
 
-  // PHASE 1: Extract ALL fixed/relative layers from ALL groups first
+  // PHASE 1: Extract ALL fixed/relative/backdrop layers from ALL groups first
   var allFixedLayers: FixedLayerInfo[] = []
   var allRelativeLayers: FixedLayerInfo[] = []
+  var allBackdropLayers: FixedLayerInfo[] = []
   for (var i = 0; i < layoutGroups.length; i++) {
     var fixedLayers = extractFixedLayers(layoutGroups[i], doc)
     for (var j = 0; j < fixedLayers.length; j++) {
       if (fixedLayers[j].isRelative) {
         allRelativeLayers.push(fixedLayers[j])
+      } else if (fixedLayers[j].isBackdrop) {
+        allBackdropLayers.push(fixedLayers[j])
       } else {
         allFixedLayers.push(fixedLayers[j])
       }
@@ -82,13 +91,24 @@ function processDocument(doc: any): void {
   // They'll naturally move with the group when layout positions are applied
   restoreLayersToGroup(allRelativeLayers)
 
-  // PHASE 3: Process all layout groups (without fixed/relative layers interfering)
+  // PHASE 3: Process all layout groups (without fixed/relative/backdrop layers interfering)
   for (var k = 0; k < layoutGroups.length; k++) {
     processLayoutGroup(layoutGroups[k], doc)
   }
 
-  // PHASE 4: Restore fixed layers at the very end (at original positions)
+  // PHASE 4: Restore backdrop layers and resize them to document bounds
+  restoreLayersToGroup(allBackdropLayers)
+  resizeBackdropsToDocument(allBackdropLayers, doc)
+
+  // PHASE 5: Restore fixed layers (at original positions)
   restoreLayersToGroup(allFixedLayers)
+
+  // PHASE 6: Process backdrop layers (merge layers in their FINAL positions)
+  // This happens after layout AND after all layers are restored
+  // So backdrops capture the absolute final rendered state with everything in place
+  for (var m = 0; m < layoutGroups.length; m++) {
+    processBackdropsInGroup(layoutGroups[m], doc)
+  }
 }
 
 /**
@@ -105,7 +125,7 @@ function getDepth(layer: any): number {
 }
 
 /**
- * Store information about a fixed/relative layer that was temporarily moved
+ * Store information about a fixed/relative/backdrop layer that was temporarily moved
  */
 interface FixedLayerInfo {
   layer: any
@@ -114,33 +134,34 @@ interface FixedLayerInfo {
   absoluteX: number
   absoluteY: number
   isRelative: boolean // If true, this layer moves with layout; if false, stays in original position
+  isBackdrop: boolean // If true, this is a backdrop layer that should fill document
 }
 
 /**
- * Extract fixed and relative layers from a group and move them to document root
+ * Extract fixed, relative, and backdrop layers from a group and move them to document root
  * Returns info needed to restore them later
  */
 function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
   var fixedLayers: FixedLayerInfo[] = []
   var children = getChildren(layerSet)
 
-  // Find fixed/relative layers and their siblings for restoration
+  // Find fixed/relative/backdrop layers and their siblings for restoration
   for (var i = 0; i < children.length; i++) {
     var child = children[i]
     var childConfig = parseLayoutName(child.name)
 
     if (
-      (childConfig.isFixed || childConfig.isRelative) &&
+      (childConfig.isFixed || childConfig.isRelative || childConfig.isBackdrop) &&
       isLayerVisible(child)
     ) {
       var bounds = getLayerBounds(child)
 
-      // Find the next non-fixed/non-relative sibling (if any) to place before it later
+      // Find the next non-fixed/non-relative/non-backdrop sibling (if any) to place before it later
       var siblingAfter = null
       for (var j = i + 1; j < children.length; j++) {
         var nextChild = children[j]
         var nextConfig = parseLayoutName(nextChild.name)
-        if (!nextConfig.isFixed && !nextConfig.isRelative) {
+        if (!nextConfig.isFixed && !nextConfig.isRelative && !nextConfig.isBackdrop) {
           siblingAfter = nextChild
           break
         }
@@ -154,6 +175,7 @@ function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
         absoluteX: bounds.left,
         absoluteY: bounds.top,
         isRelative: childConfig.isRelative,
+        isBackdrop: childConfig.isBackdrop,
       })
     }
   }
@@ -169,6 +191,7 @@ function extractFixedLayers(layerSet: any, doc: any): FixedLayerInfo[] {
 /**
  * Restore layers back to their original parent groups
  * For relative layers, they naturally move with the group
+ * For backdrop layers, they move naturally with the group (will be resized separately)
  * For fixed layers, restore to original absolute position
  */
 function restoreLayersToGroup(layers: FixedLayerInfo[]): void {
@@ -195,8 +218,8 @@ function restoreLayersToGroup(layers: FixedLayerInfo[]): void {
     }
 
     // For fixed layers, restore to original absolute position
-    // For relative layers, they'll move naturally with the group
-    if (!info.isRelative) {
+    // For relative and backdrop layers, they'll move naturally with the group
+    if (!info.isRelative && !info.isBackdrop) {
       var currentBounds = getLayerBounds(info.layer)
       var deltaX = info.absoluteX - currentBounds.left
       var deltaY = info.absoluteY - currentBounds.top
@@ -205,6 +228,21 @@ function restoreLayersToGroup(layers: FixedLayerInfo[]): void {
         info.layer.translate(deltaX, deltaY)
       }
     }
+  }
+}
+
+/**
+ * Resize backdrop layers to fill the entire document
+ */
+function resizeBackdropsToDocument(backdrops: FixedLayerInfo[], doc: any): void {
+  if (backdrops.length === 0) return
+
+  var docWidth = doc.width.as("px")
+  var docHeight = doc.height.as("px")
+
+  for (var i = 0; i < backdrops.length; i++) {
+    var backdrop = backdrops[i].layer
+    resizeBackdropToSize(backdrop, docWidth, docHeight)
   }
 }
 

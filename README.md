@@ -166,6 +166,64 @@ The corner accent stays at its exact canvas position (200, 20) regardless of:
 
 If this `.hstack` is inside a parent layout that moves it around, the buttons will move with the group, but the background gradient will stay at canvas position (0, 0) - perfect for full-bleed backgrounds.
 
+### Backdrop Layers (Dynamic Background Effects)
+
+```
+.vstack.gap(16).padding(24)
+├── Background Pattern
+├── Decorative Element
+├── Backdrop.backdrop          ← Smart object - contents updated AFTER layout
+├── Title Text                 ← Normal layout continues
+└── Body Text
+```
+
+The `.backdrop` layer must be a **smart object**. After layout is applied, Loom opens the smart object and replaces its contents with all **visible layers before it** (above it in the layer panel) within the same group. This enables dynamic background effects like blurs, color adjustments, and filters that you apply to the smart object.
+
+**Use cases:**
+- **Blurry backgrounds**: Apply gaussian blur to the smart object for iOS-style blur effects
+- **Color adjustments**: Apply hue/saturation or other adjustments to background content
+- **Filters**: Any Photoshop filter can be applied to the merged backdrop
+
+**Example: Frosted Glass Effect**
+
+```
+.vstack.gap(0).padding(20)
+├── Hero Image
+├── Pattern Overlay
+├── Frost.backdrop             ← Smart object with Gaussian Blur applied
+├── .vstack.gap(8)
+│   ├── Title Text
+│   └── Subtitle Text
+└── CTA Button
+```
+
+Setup:
+1. Create a smart object layer and name it `Frost.backdrop`
+2. Apply Gaussian Blur (15px) to the smart object layer
+3. Run Loom - it updates the smart object contents with hero image + pattern merged
+4. The blur effect persists, creating a dynamic frosted glass effect
+5. Run Loom again after changes - backdrop automatically updates with new layout
+
+**Behavior:**
+- The `.backdrop` layer **must be a smart object** (create one via Layer → Smart Objects → Convert to Smart Object)
+- Only **visible** layers before the backdrop are merged into it
+- **Fixed** layers are excluded (they're processed separately)
+- **Relative** layers are included if visible
+- The backdrop participates in layout like any other layer
+- Can be combined with other classes (`.backdrop.rounded`, `.backdrop.content`, etc.)
+- Processing happens **after** layout, so the backdrop reflects the final positioned state
+- Effects applied to the smart object (blur, adjustments, etc.) persist across updates
+
+**Layer ordering:** Remember that Photoshop's layer panel shows layers in reverse order - the layer at the top of the panel appears behind layers below it. "Before" means "above in the panel".
+
+**Workflow:**
+1. Create your layout group with layers
+2. Add a smart object layer where you want the backdrop
+3. Name it with `.backdrop` (e.g., `Blur.backdrop`)
+4. Apply any effects to the smart object (gaussian blur, color adjustments, etc.)
+5. Run Loom - the smart object contents update with merged layers
+6. Effects remain applied, creating dynamic background effects
+
 ## Syntax Reference
 
 | Class               | Description                                     | Example                |
@@ -188,6 +246,7 @@ If this `.hstack` is inside a parent layout that moves it around, the buttons wi
 | `.rounded`          | Maximize corner radius for rounded rectangles   | Auto-updates on scale  |
 | `.fixed`            | Ignore layer in layout, stay at canvas position | Absolute decorations   |
 | `.relative`         | Ignore layer in layout, but move with parent    | Overlays/badges        |
+| `.backdrop`         | Merge visible layers before this into a smart object | Background effects |
 
 \* Note: `justify-*` only work when there's a `.content` layer defining the container bounds.
 
