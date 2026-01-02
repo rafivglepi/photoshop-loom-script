@@ -43,6 +43,10 @@ export function parseLayoutName(name: string): LayoutConfig {
     else if (cls === "rounded") {
       config.isRounded = true
     }
+    // Fixed (ignored by layout - decorations/backgrounds)
+    else if (cls === "fixed") {
+      config.isFixed = true
+    }
     // Items alignment (cross-axis)
     else if (cls === "items-start") {
       config.items = "start"
@@ -139,4 +143,11 @@ export function isLayoutGroup(name: string): boolean {
  */
 export function isContentLayer(name: string): boolean {
   return !!name && name.indexOf(".content") !== -1
+}
+
+/**
+ * Check if a layer name indicates it's a fixed layer
+ */
+export function isFixedLayer(name: string): boolean {
+  return !!name && name.indexOf(".fixed") !== -1
 }

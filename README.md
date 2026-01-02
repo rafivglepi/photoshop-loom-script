@@ -15,6 +15,7 @@ Stop manually nudging layers pixel by pixel. Loom weaves your layers together wi
 - **Justify**: Control main-axis distribution (`.justify-center`, `.justify-end`, `.justify-between`)
 - **Content layers**: Background layers that define container bounds or auto-resize (`.content`, `.content.resize`)
 - **Rounded corners**: Auto-maximize corner radius for rounded rectangles (`.rounded`)
+- **Fixed layers**: Layers ignored by layout system, perfect for decorations and backgrounds (`.fixed`)
 
 ## Installation
 
@@ -105,6 +106,65 @@ The `.content.resize` layer resizes to fill the text + padding, perfect for butt
 
 The `.rounded` class automatically sets rounded rectangles to their maximum possible corner radius (half the smaller dimension). When rectangles are scaled by the layout system, their roundness updates to maintain the maximum value.
 
+### Fixed Layers (Decorations & Backgrounds)
+
+```
+.vstack.gap(16).padding(24)
+├── Background Pattern.fixed    ← Stays exactly where it is
+├── Watermark.fixed              ← Ignored by layout
+├── Title Text                   ← Positioned normally
+└── Body Text                    ← Positioned normally
+```
+
+Fixed layers are completely ignored by the layout system. They maintain their absolute position on the canvas and have zero impact on layout calculations. Use them for:
+
+- Background decorations that should stay in a specific position
+- Watermarks or overlay graphics
+- Elements positioned absolutely that shouldn't interfere with layout flow
+- Decorative elements that are "outside" the normal flow
+
+**How it works:** The script uses a three-phase approach to handle fixed layers:
+
+1. **Phase 1 - Extract:** ALL fixed layers from ALL layout groups are moved to the document root
+2. **Phase 2 - Layout:** ALL layouts are calculated and applied (without any fixed layers interfering)
+3. **Phase 3 - Restore:** ALL fixed layers are moved back to their original parents at their exact original positions
+
+This ensures:
+
+- Fixed layers don't contribute to group bounds at all
+- They don't affect content size calculations
+- They don't cause siblings to shift or make space
+- Parent layouts can't move them (they're out of the groups during layout)
+- They maintain their exact canvas coordinates regardless of layout changes
+
+**Example: Card with decorative corner**
+
+```
+.vstack.gap(12).padding(20)
+├── .content.resize         ← Auto-sized background
+├── Corner Accent.fixed     ← Decorative element in top-right (positioned at 200, 20)
+├── Card Title              ← Laid out normally
+└── Card Description        ← Laid out normally
+```
+
+The corner accent stays at its exact canvas position (200, 20) regardless of:
+
+- How the content resizes
+- Where the parent group moves
+- What siblings are added or removed
+
+**Example: Background pattern that shouldn't move**
+
+```
+.hstack.gap(16).justify-between
+├── Background Gradient.fixed   ← Stays at (0, 0)
+├── Left Button                 ← Positioned by layout
+├── Center Button               ← Positioned by layout
+└── Right Button                ← Positioned by layout
+```
+
+If this `.hstack` is inside a parent layout that moves it around, the buttons will move with the group, but the background gradient will stay at canvas position (0, 0) - perfect for full-bleed backgrounds.
+
 ## Syntax Reference
 
 | Class               | Description                                   | Example                |
@@ -125,8 +185,9 @@ The `.rounded` class automatically sets rounded rectangles to their maximum poss
 | `.content`          | Layer defines container size                  | Background/container   |
 | `.resize`           | Make `.content` resize to fit children        | Use with `.content`    |
 | `.rounded`          | Maximize corner radius for rounded rectangles | Auto-updates on scale  |
+| `.fixed`            | Ignore layer in layout calculations           | Decorations/overlays   |
 
-\* Note: `justify-center` and `justify-end` only work when there's a `.content` layer defining the container bounds.
+\* Note: `justify-*` only work when there's a `.content` layer defining the container bounds.
 
 ## How Loom Works
 

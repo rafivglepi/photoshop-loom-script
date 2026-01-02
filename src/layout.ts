@@ -5,7 +5,7 @@ import {
 	getLayerBounds,
 	isLayerVisible,
 } from "./measure"
-import { isContentLayer, parseLayoutName } from "./parser"
+import { isContentLayer, isFixedLayer, parseLayoutName } from "./parser"
 import {
 	Bounds,
 	ComputedPosition,
@@ -22,6 +22,7 @@ export interface LayoutResult {
   children: LayoutChild[]
   contentSize: { width: number; height: number }
   containerSize: { width: number; height: number }
+  groupBounds: Bounds
 }
 
 /**
@@ -33,13 +34,19 @@ export function calculateLayout(
 ): LayoutResult {
   var allChildren = getChildren(layerSet)
 
-  // Separate content layers from normal layers
+  // Separate content layers and normal layers
+  // Note: Fixed layers are handled at a higher level (moved out of group before layout)
   var contentLayers: any[] = []
   var normalLayers: any[] = []
 
   for (var i = 0; i < allChildren.length; i++) {
     var child = allChildren[i]
     if (!isLayerVisible(child)) continue
+
+    // Skip fixed layers (they should already be moved out, but check just in case)
+    if (isFixedLayer(child.name)) {
+      continue
+    }
 
     if (isContentLayer(child.name)) {
       contentLayers.push(child)
@@ -58,6 +65,7 @@ export function calculateLayout(
   var contentSize = calculateContentSize(normalBounds, config)
 
   // Get group bounds for reference
+  // Note: We don't use groupBounds for positioning to avoid fixed layers affecting layout
   var groupBounds = getLayerBounds(layerSet)
 
   // Calculate available space and container size
@@ -111,7 +119,12 @@ export function calculateLayout(
   var contentStartX: number
   var contentStartY: number
 
-  if (normalBounds.length > 0 && !useFixedSize) {
+  if (useFixedSize) {
+    // Fixed-size mode: use .content layer bounds + padding
+    var contentLayerBounds = getLayerBounds(contentLayers[0])
+    contentStartX = contentLayerBounds.left + config.padding.left
+    contentStartY = contentLayerBounds.top + config.padding.top
+  } else if (normalBounds.length > 0) {
     // Auto-size mode: use existing children position
     var minX = normalBounds[0].left
     var minY = normalBounds[0].top
@@ -121,11 +134,11 @@ export function calculateLayout(
     }
     contentStartX = minX
     contentStartY = minY
-  } else if (useFixedSize) {
-    // Fixed-size mode: use .content layer bounds + padding
+  } else if (contentLayers.length > 0) {
+    // If we only have content layers, use content layer position
     var contentLayerBounds = getLayerBounds(contentLayers[0])
-    contentStartX = contentLayerBounds.left + config.padding.left
-    contentStartY = contentLayerBounds.top + config.padding.top
+    contentStartX = contentLayerBounds.left
+    contentStartY = contentLayerBounds.top
   } else {
     // Fallback: use group bounds
     contentStartX = groupBounds.left
@@ -171,10 +184,14 @@ export function calculateLayout(
     })
   }
 
+  // Note: Fixed layers are handled at a higher level (outside this function)
+  // They are moved out before layout and restored after
+
   return {
     children: layoutChildren,
     contentSize: contentSize,
     containerSize: containerSize,
+    groupBounds: groupBounds,
   }
 }
 

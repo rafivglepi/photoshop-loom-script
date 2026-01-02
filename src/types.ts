@@ -25,6 +25,7 @@ export interface LayoutConfig {
   isContent: boolean // If true, this layer stretches to fill parent
   resizeContent: boolean // If true, container auto-sizes to fit children (default: false)
   isRounded: boolean // If true, maximize corner radius for rounded rectangles
+  isFixed: boolean // If true, this layer is ignored by layout (decorations/backgrounds)
 }
 
 // Rectangle bounds
@@ -67,5 +68,6 @@ export function createDefaultConfig(): LayoutConfig {
     isContent: false,
     resizeContent: false,
     isRounded: false,
+    isFixed: false,
   }
 }
