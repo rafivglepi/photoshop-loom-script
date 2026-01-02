@@ -24,6 +24,7 @@ export interface LayoutConfig {
   justify: JustifyAlignment
   isContent: boolean // If true, this layer stretches to fill parent
   resizeContent: boolean // If true, container auto-sizes to fit children (default: false)
+  isRounded: boolean // If true, maximize corner radius for rounded rectangles
 }
 
 // Rectangle bounds
@@ -65,5 +66,6 @@ export function createDefaultConfig(): LayoutConfig {
     justify: "start",
     isContent: false,
     resizeContent: false,
+    isRounded: false,
   }
 }

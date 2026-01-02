@@ -1,5 +1,7 @@
 import { LayoutChild, Bounds, ComputedSize } from './types';
-import { getLayerBounds, getBoundsWidth, getBoundsHeight } from './measure';
+import { getLayerBounds, getBoundsWidth, getBoundsHeight, getChildren, isLayerGroup } from './measure';
+import { applyMaxRoundness } from './rounded';
+import { parseLayoutName } from './parser';
 
 // Declare ExtendScript globals
 declare function charIDToTypeID(id: string): number;
@@ -150,5 +152,51 @@ export function fitLayerToBounds(layer: any, targetBounds: Bounds): void {
   
   // Then move to target position
   moveLayerTo(layer, targetBounds.left, targetBounds.top);
+}
+
+/**
+ * Apply maximum roundness to layers with .rounded class
+ * Sets corner radius to the maximum possible value (half the smaller dimension)
+ */
+export function applyRoundness(children: LayoutChild[]): void {
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i];
+    
+    // Check if this layer should have max roundness applied
+    if (child.config.isRounded) {
+      applyMaxRoundness(child.layer);
+    }
+    
+    // Recursively check children of this layer (especially for .content layers)
+    applyRoundnessRecursive(child.layer);
+  }
+}
+
+/**
+ * Recursively apply roundness to nested layers
+ */
+function applyRoundnessRecursive(layer: any): void {
+  // Check if this layer is a group
+  if (!isLayerGroup(layer)) {
+    return;
+  }
+  
+  // Get all children of this group
+  var children = getChildren(layer);
+  
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i];
+    var config = parseLayoutName(child.name);
+    
+    // Apply roundness if this child has .rounded
+    if (config.isRounded) {
+      applyMaxRoundness(child);
+    }
+    
+    // Recursively check this child's children
+    if (isLayerGroup(child)) {
+      applyRoundnessRecursive(child);
+    }
+  }
 }
 

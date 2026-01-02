@@ -39,6 +39,10 @@ export function parseLayoutName(name: string): LayoutConfig {
     else if (cls === "resize") {
       config.resizeContent = true
     }
+    // Rounded (maximize corner radius for rounded rectangles)
+    else if (cls === "rounded") {
+      config.isRounded = true
+    }
     // Items alignment (cross-axis)
     else if (cls === "items-start") {
       config.items = "start"

@@ -14,6 +14,7 @@ Stop manually nudging layers pixel by pixel. Loom weaves your layers together wi
 - **Alignment**: Control cross-axis alignment (`.items-center`, `.items-start`, `.items-end`)
 - **Justify**: Control main-axis distribution (`.justify-center`, `.justify-end`, `.justify-between`)
 - **Content layers**: Background layers that define container bounds or auto-resize (`.content`, `.content.resize`)
+- **Rounded corners**: Auto-maximize corner radius for rounded rectangles (`.rounded`)
 
 ## Installation
 
@@ -91,6 +92,19 @@ The `.content` layer defines the container size. Buttons center within that spac
 
 The `.content.resize` layer resizes to fill the text + padding, perfect for button backgrounds.
 
+### Auto-Maximum Rounded Corners
+
+```
+.hstack.gap(12)
+├── Icon.rounded         ← Always maximally rounded
+├── .vstack.padding(16)
+│   ├── .content.rounded ← Background auto-rounds to max
+│   └── Button Text
+└── Badge.rounded        ← Stays maximally rounded after scaling
+```
+
+The `.rounded` class automatically sets rounded rectangles to their maximum possible corner radius (half the smaller dimension). When rectangles are scaled by the layout system, their roundness updates to maintain the maximum value.
+
 ## Syntax Reference
 
 | Class               | Description                                   | Example                |
@@ -110,6 +124,7 @@ The `.content.resize` layer resizes to fill the text + padding, perfect for butt
 | `.justify-between`  | Distribute children with equal spacing        |                        |
 | `.content`          | Layer defines container size                  | Background/container   |
 | `.resize`           | Make `.content` resize to fit children        | Use with `.content`    |
+| `.rounded`          | Maximize corner radius for rounded rectangles | Auto-updates on scale  |
 
 \* Note: `justify-center` and `justify-end` only work when there's a `.content` layer defining the container bounds.
 
@@ -191,26 +206,7 @@ To test the script:
 4. Run the script
 5. The rounded rectangle should resize to wrap the text with the specified padding
 
-## Roadmap
-
-- [x] Flexbox-inspired layout system
-- [x] Auto-sizing containers with `.content.resize`
-- [x] Justify alignment for distributing space
-- [ ] Absolute positioning (`.absolute`)
-- [ ] Backdrop effects (`.backdrop`)
-- [ ] More coming soon!
-
 ## Limitations
 
-- ExtendScript runs synchronously
-- Layer order in Photoshop is reversed (bottom = index 0), handled automatically
 - Some layer types may not support resize operations
 - Shape layers resize via transform which may affect stroke weights
-
-## Contributing
-
-Loom is open source! Contributions are welcome. Check out the issues or propose new features.
-
-## License
-
-MIT
