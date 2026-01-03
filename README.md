@@ -180,6 +180,7 @@ If this `.hstack` is inside a parent layout that moves it around, the buttons wi
 The `.backdrop` layer must be a **smart object**. After layout is applied, Loom opens the smart object and replaces its contents with all **visible layers before it** (above it in the layer panel) within the same group. This enables dynamic background effects like blurs, color adjustments, and filters that you apply to the smart object.
 
 **Use cases:**
+
 - **Blurry backgrounds**: Apply gaussian blur to the smart object for iOS-style blur effects
 - **Color adjustments**: Apply hue/saturation or other adjustments to background content
 - **Filters**: Any Photoshop filter can be applied to the merged backdrop
@@ -198,6 +199,7 @@ The `.backdrop` layer must be a **smart object**. After layout is applied, Loom 
 ```
 
 Setup:
+
 1. Create a smart object layer and name it `Frost.backdrop`
 2. Apply Gaussian Blur (15px) to the smart object layer
 3. Run Loom - it updates the smart object contents with hero image + pattern merged
@@ -205,6 +207,7 @@ Setup:
 5. Run Loom again after changes - backdrop automatically updates with new layout
 
 **Behavior:**
+
 - The `.backdrop` layer **must be a smart object** (create one via Layer → Smart Objects → Convert to Smart Object)
 - Only **visible** layers before the backdrop are merged into it
 - **Fixed** layers are excluded (they're processed separately)
@@ -217,6 +220,7 @@ Setup:
 **Layer ordering:** Remember that Photoshop's layer panel shows layers in reverse order - the layer at the top of the panel appears behind layers below it. "Before" means "above in the panel".
 
 **Workflow:**
+
 1. Create your layout group with layers
 2. Add a smart object layer where you want the backdrop
 3. Name it with `.backdrop` (e.g., `Blur.backdrop`)
@@ -226,27 +230,27 @@ Setup:
 
 ## Syntax Reference
 
-| Class               | Description                                     | Example                |
-| ------------------- | ----------------------------------------------- | ---------------------- |
-| `.hstack`           | Horizontal layout (row)                         | `.hstack.gap(8)`       |
-| `.vstack`           | Vertical layout (column)                        | `.vstack.items-center` |
-| `.gap(n)`           | Space between children (px)                     | `.gap(16)`             |
-| `.padding(n)`       | Equal padding all sides                         | `.padding(8)`          |
-| `.padding(v,h)`     | Vertical, horizontal padding                    | `.padding(8,16)`       |
-| `.padding(t,r,b,l)` | Individual padding (top, right, bottom, left)   | `.padding(8,16,8,16)`  |
-| `.items-start`      | Align children to cross-axis start              |                        |
-| `.items-center`     | Align children to cross-axis center             |                        |
-| `.items-end`        | Align children to cross-axis end                |                        |
-| `.justify-start`    | Align children to main-axis start (default)     |                        |
-| `.justify-center`   | Center children on main-axis                    | Requires `.content`    |
-| `.justify-end`      | Align children to main-axis end                 | Requires `.content`    |
-| `.justify-between`  | Distribute children with equal spacing          |                        |
-| `.content`          | Layer defines container size                    | Background/container   |
-| `.resize`           | Make `.content` resize to fit children          | Use with `.content`    |
-| `.rounded`          | Maximize corner radius for rounded rectangles   | Auto-updates on scale  |
-| `.fixed`            | Ignore layer in layout, stay at canvas position | Absolute decorations   |
-| `.relative`         | Ignore layer in layout, but move with parent    | Overlays/badges        |
-| `.backdrop`         | Merge visible layers before this into a smart object | Background effects |
+| Class               | Description                                          | Example                |
+| ------------------- | ---------------------------------------------------- | ---------------------- |
+| `.hstack`           | Horizontal layout (row)                              | `.hstack.gap(8)`       |
+| `.vstack`           | Vertical layout (column)                             | `.vstack.items-center` |
+| `.gap(n)`           | Space between children (px)                          | `.gap(16)`             |
+| `.padding(n)`       | Equal padding all sides                              | `.padding(8)`          |
+| `.padding(v,h)`     | Vertical, horizontal padding                         | `.padding(8,16)`       |
+| `.padding(t,r,b,l)` | Individual padding (top, right, bottom, left)        | `.padding(8,16,8,16)`  |
+| `.items-start`      | Align children to cross-axis start                   |                        |
+| `.items-center`     | Align children to cross-axis center                  |                        |
+| `.items-end`        | Align children to cross-axis end                     |                        |
+| `.justify-start`    | Align children to main-axis start (default)          |                        |
+| `.justify-center`   | Center children on main-axis                         | Requires `.content`    |
+| `.justify-end`      | Align children to main-axis end                      | Requires `.content`    |
+| `.justify-between`  | Distribute children with equal spacing               |                        |
+| `.content`          | Layer defines container size                         | Background/container   |
+| `.resize`           | Make `.content` resize to fit children               | Use with `.content`    |
+| `.rounded`          | Maximize corner radius for rounded rectangles        | Auto-updates on scale  |
+| `.fixed`            | Ignore layer in layout, stay at canvas position      | Absolute decorations   |
+| `.relative`         | Ignore layer in layout, but move with parent         | Overlays/badges        |
+| `.backdrop`         | Merge visible layers before this into a smart object | Background effects     |
 
 \* Note: `justify-*` only work when there's a `.content` layer defining the container bounds.
 
@@ -332,3 +336,4 @@ To test the script:
 
 - Some layer types may not support resize operations
 - Shape layers resize via transform which may affect stroke weights
+- **Adjustment layers are automatically ignored** by the layout system since they cannot be transformed or moved. This includes: Black & White, Brightness/Contrast, Channel Mixer, Color Balance, Color Lookup, Curves, Exposure, Gradient Map, Hue/Saturation, Invert, Levels, Photo Filter, Posterize, Selective Color, Threshold, and Vibrance layers.
