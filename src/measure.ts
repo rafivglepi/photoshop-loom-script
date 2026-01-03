@@ -1,4 +1,4 @@
-import { Bounds } from "./types"
+import { Bounds } from './types';
 
 // Declare ExtendScript globals
 declare var LayerKind: any
@@ -15,15 +15,22 @@ const ADJUSTMENT_LAYER_KINDS = [
   "COLORLOOKUP",
   "CURVES",
   "EXPOSURE",
+  "GRADIENTFILL",
   "GRADIENTMAP",
   "HUESATURATION",
   "INVERSION",
   "LEVELS",
+  // "NORMAL",
+  "PATTERNFILL",
   "PHOTOFILTER",
   "POSTERIZE",
   "SELECTIVECOLOR",
+  // "SMARTOBJECT",
+  "SOLIDFILL",
+  // "TEXT",
   "THRESHOLD",
   "VIBRANCE",
+  "VIDEO",
 ]
 
 /**
@@ -38,7 +45,10 @@ export function isAdjustmentLayer(layer: any): boolean {
   // Check if the layer's kind matches any adjustment layer kind
   for (var i = 0; i < ADJUSTMENT_LAYER_KINDS.length; i++) {
     var kindName = ADJUSTMENT_LAYER_KINDS[i]
-    if (LayerKind[kindName] !== undefined && layer.kind === LayerKind[kindName]) {
+    if (
+      LayerKind[kindName] !== undefined &&
+      layer.kind === LayerKind[kindName]
+    ) {
       return true
     }
   }
